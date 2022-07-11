@@ -1,4 +1,4 @@
-APP_NAME = go
+APP_NAME = hermessenger
 APP_HOME = github.com/mmalessa/$(APP_NAME)
 
 BASE_GO_IMAGE = golang:1.17.6-alpine3.15
@@ -63,8 +63,11 @@ console: ## Enter application dev container
 go: go-build ## Alias for 'go-build'
 
 go-build: ## Build dev application (go build)	
-	@go mod tidy
-	@env CGO_ENABLED=${CGO_ENABLED} GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags "-X main.env=dev" -o bin/${APP_NAME} ./
+	@for EXAMPLE in ./examples/*; do \
+		DIR=`basename $$EXAMPLE`; \
+		echo "Build example:" $$DIR; \
+		go build -o ./examples/$$DIR/$$DIR ./examples/$$DIR \
+	; done
 
-clean: ## Clean bin/
-	@rm -rf bin/${APP_NAME}
+test:
+	@go test
