@@ -1,11 +1,12 @@
-# Various Go modules
+# Hermessenger
+An attempt to create a messagebus (async, amqp ...and so on)
 Under construction
 
 --------  
 
 ### Visual Studio Code
-1. On left bottom corner click `><` icon and select `Attach to running container...` and select container `$(APP_NAME)`
-2. Install (Ctrl + Shift + X): 
-    - Remote - Containers (Microsoft)
-    - Go (Go Team at Google)
-3. Run command (Ctrl + Shift + P) `Go: Install/Update tools`, select all and click `OK`
+1. Install (Ctrl + Shift + X): Remote - Containers (Microsoft)
+2. Install (Ctrl + Shift + X): Go (Go Team at Google)
+3. On left bottom corner click `><` icon and select `Attach to running container...` and select container `$(APP_NAME)`
+4. Install (in container) (Ctrl + Shift + X): Go (Go Team at Google)
+5. Run command (Ctrl + Shift + P) `Go: Install/Update tools`, select all and click `OK`
