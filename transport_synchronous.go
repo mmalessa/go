@@ -34,9 +34,9 @@ func (t *TransportSynchronous) Subscribe(
 out:
 	for {
 		select {
-		case msg := <-t.localMessageChannel:
-			log.Printf("[%s] Handle message: %s", TransportName, "FIXME")
-			messageChannel <- msg
+		case envelope := <-t.localMessageChannel:
+			log.Printf("[%s] Handle message: %s", TransportName, envelope.stamps.template)
+			messageChannel <- envelope
 		case <-t.ctx.Done():
 			break out
 		default:

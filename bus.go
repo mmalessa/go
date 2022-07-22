@@ -8,8 +8,9 @@ import (
 )
 
 type Bus struct {
-	ctx       context.Context
-	transport Transport
+	ctx             context.Context
+	transport       Transport
+	envelopeFactory EnvelopeFactory
 }
 
 func NewBus(
@@ -28,6 +29,8 @@ func (b *Bus) setOptArgs(optArgs []interface{}) error {
 		switch argType := arg.(type) {
 		case Transport:
 			b.transport = arg.(Transport)
+		case EnvelopeFactory:
+			b.envelopeFactory = arg.(EnvelopeFactory)
 		default:
 			log.Printf("[BUS] Unknown argument type: %T", argType)
 		}
@@ -65,39 +68,42 @@ func (b *Bus) StartConsume() error {
 	return nil
 }
 
-// #################################
-
 func (b *Bus) Dispatch(message interface{}, options ...func(*DispatchOptions)) error {
 	dispatchOptions := getDefaultDispatchOptions()
 	for _, option := range options {
 		option(dispatchOptions)
 	}
-	envelope, err := b.getEnvelope(message)
+	envelope, err := b.getEnvelopeFromMessage(message)
 	if err != nil {
 		return err
 	}
 	log.Printf("[BUS] Dispatch message: %s", envelope.stamps.template)
-	// b.transport.Publish(message, dispatchOptions)
+	b.transport.Publish(envelope, dispatchOptions)
 
 	return nil
 }
 
-func (b *Bus) getEnvelope(message interface{}) (*Envelope, error) {
-	// if fmt.Sprintf("%T", message) == "*hermessenger.Envelope" {
-	// 	return message.(*Envelope), nil
-	// }
-	// envelope, err := b.envelopeFactory.GetEnvelope(message)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// return envelope, nil
-	return nil, nil
+func (b *Bus) getEnvelopeFromMessage(message interface{}) (*Envelope, error) {
+	if fmt.Sprintf("%T", message) == "*hermessenger.Envelope" {
+		return message.(*Envelope), nil
+	}
+	if b.envelopeFactory == nil {
+		return nil, fmt.Errorf("[BUS] EnvelopeFactory not specified")
+	}
+	envelope, err := b.envelopeFactory.GetEnvelope(message)
+	if err != nil {
+		return nil, err
+	}
+	return envelope, nil
 }
 
+// TODO
 func (b *Bus) handleError(err error) {
 	log.Println("[BUS] Error from transport:", err)
 }
 
-func (b *Bus) handleMessage(message *Envelope) {
-	// log.Printf("[BUS] Handle message: %s", message.template)
+// TODO
+func (b *Bus) handleMessage(envelope *Envelope) {
+	log.Printf("[BUS] Handle message: %s", envelope.stamps.template)
+	log.Printf("[BUS] Envelope: %#v", envelope)
 }
