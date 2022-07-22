@@ -2,6 +2,7 @@ package hermessenger
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 )
@@ -13,30 +14,34 @@ type Bus struct {
 
 func NewBus(
 	ctx context.Context,
-	transport Transport,
+	optArgs ...interface{},
 ) *Bus {
 	b := &Bus{
-		ctx:       ctx,
-		transport: transport,
+		ctx: ctx,
 	}
+	b.setOptArgs(optArgs)
 	return b
 }
 
-func (b *Bus) Dispatch(message *Message, options ...func(*DispatchOptions)) error {
-	dispatchOptions := getDefaultDispatchOptions()
-	for _, option := range options {
-		option(dispatchOptions)
+func (b *Bus) setOptArgs(optArgs []interface{}) error {
+	for _, arg := range optArgs {
+		switch argType := arg.(type) {
+		case Transport:
+			b.transport = arg.(Transport)
+		default:
+			log.Printf("[BUS] Unknown argument type: %T", argType)
+		}
 	}
-
-	b.transport.Publish(message, dispatchOptions)
-
 	return nil
 }
 
-func (b *Bus) StartConsume() {
+func (b *Bus) StartConsume() error {
 	log.Println("[BUS] Consuming started")
+	if b.transport == nil {
+		return fmt.Errorf("[BUS] Transport not specified")
+	}
 	go func() {
-		messageChannel := make(chan *Message)
+		messageChannel := make(chan *Envelope)
 		errorChannel := make(chan error)
 		defer close(messageChannel)
 		defer close(errorChannel)
@@ -45,18 +50,54 @@ func (b *Bus) StartConsume() {
 		for {
 			select {
 			case msg := <-messageChannel:
-				log.Printf("[BUS] Handle message: %T", *msg)
-				//TODO
+				b.handleMessage(msg)
 			case err := <-errorChannel:
-				log.Println("[BUS] Error from transport:", err)
+				b.handleError(err)
 			case <-b.ctx.Done():
 				break out
 			default:
 				time.Sleep(100 * time.Millisecond)
 			}
 		}
-
 		log.Println("[BUS] Consuming complete")
 	}()
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
+	return nil
+}
+
+// #################################
+
+func (b *Bus) Dispatch(message interface{}, options ...func(*DispatchOptions)) error {
+	dispatchOptions := getDefaultDispatchOptions()
+	for _, option := range options {
+		option(dispatchOptions)
+	}
+	envelope, err := b.getEnvelope(message)
+	if err != nil {
+		return err
+	}
+	log.Printf("[BUS] Dispatch message: %s", envelope.stamps.template)
+	// b.transport.Publish(message, dispatchOptions)
+
+	return nil
+}
+
+func (b *Bus) getEnvelope(message interface{}) (*Envelope, error) {
+	// if fmt.Sprintf("%T", message) == "*hermessenger.Envelope" {
+	// 	return message.(*Envelope), nil
+	// }
+	// envelope, err := b.envelopeFactory.GetEnvelope(message)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// return envelope, nil
+	return nil, nil
+}
+
+func (b *Bus) handleError(err error) {
+	log.Println("[BUS] Error from transport:", err)
+}
+
+func (b *Bus) handleMessage(message *Envelope) {
+	// log.Printf("[BUS] Handle message: %s", message.template)
 }
