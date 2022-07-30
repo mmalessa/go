@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/mmalessa/mmessenger/envelope"
+	"github.com/mmalessa/mmessenger/transport"
 )
 
 type MessageBus struct {
 	ctx       context.Context
-	transport Transport
+	transport transport.Transport
 }
 
 func NewMessageBus(
@@ -22,30 +23,29 @@ func NewMessageBus(
 		ctx: ctx,
 	}
 	b.setOptArgs(optArgs)
-	b.setDefaultArgs()
+	// b.setDefaultArgs()
 	return b
 }
 
 func (b *MessageBus) setOptArgs(optArgs []interface{}) error {
 	for _, arg := range optArgs {
-		switch argType := arg.(type) {
-		case Transport:
-			b.transport = arg.(Transport)
+		switch argTyped := arg.(type) {
+		case transport.Transport:
+			b.transport = argTyped
 		default:
-			log.Printf("[messagebus] Unknown argument type: %T", argType)
+			log.Printf("[messagebus] Unknown argument type: %T", argTyped)
 		}
 	}
 	return nil
 }
 
-func (b *MessageBus) setDefaultArgs() error {
-	if b.transport == nil {
-		b.transport = NewTransportSynchronous(b.ctx)
-	}
-	// TODO
-
-	return nil
-}
+// func (b *MessageBus) setDefaultArgs() error {
+// 	if b.transport == nil {
+// 		b.transport = transport.NewSynchronous(b.ctx)
+// 	}
+// 	// TODO
+// 	return nil
+// }
 
 func (b *MessageBus) Start() error {
 	log.Println("[messagebus] Start")
@@ -74,38 +74,6 @@ func (b *MessageBus) Start() error {
 	return nil
 }
 
-func (b *MessageBus) Dispatch(message interface{}, stamps ...func(*envelope.EnvelopeStamps)) error {
-
-	envelope := envelope.Wrap(message, stamps...)
-	fmt.Println(envelope)
-	// dispatchOptions := getDefaultDispatchOptions()
-	// for _, option := range options {
-	// 	option(dispatchOptions)
-	// }
-	// envelope, err := b.getEnvelopeFromMessage(message)
-	// if err != nil {
-	// 	return err
-	// }
-	// log.Printf("[BUS] Dispatch message: %s", envelope.stamps.template)
-	// b.transport.Publish(envelope, dispatchOptions)
-
-	return nil
-}
-
-// func (b *MessageBus) getEnvelopeFromMessage(message interface{}) (*Envelope, error) {
-// 	if fmt.Sprintf("%T", message) == "*hermessenger.Envelope" {
-// 		return message.(*Envelope), nil
-// 	}
-// 	if b.envelopeFactory == nil {
-// 		return nil, fmt.Errorf("[BUS] EnvelopeFactory not specified")
-// 	}
-// 	envelope, err := b.envelopeFactory.GetEnvelope(message)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return envelope, nil
-// }
-
 // TODO
 func (b *MessageBus) handleError(err error) {
 	log.Println("[BUS] Error from transport:", err)
@@ -115,4 +83,11 @@ func (b *MessageBus) handleError(err error) {
 func (b *MessageBus) handleMessage(envelope *envelope.Envelope) {
 	// log.Printf("[BUS] Handle message: %s", envelope.stamps.template)
 	log.Printf("[BUS] Envelope: %#v", envelope)
+}
+
+func (b *MessageBus) Dispatch(message interface{}, stamps ...func(*envelope.EnvelopeStamps)) error {
+	envelope := envelope.Wrap(message, stamps...)
+	fmt.Println(envelope)
+	log.Printf("[BUS] Dispatch message: %s", "TODO")
+	return b.transport.Publish(envelope)
 }

@@ -1,4 +1,4 @@
-package mmessenger
+package transport
 
 import (
 	"context"
@@ -15,14 +15,14 @@ type TransportSynchronous struct {
 	localMessageChannel chan (*envelope.Envelope)
 }
 
-func NewTransportSynchronous(ctx context.Context) *TransportSynchronous {
+func NewSynchronous(ctx context.Context) *TransportSynchronous {
 	return &TransportSynchronous{
 		ctx:                 ctx,
 		localMessageChannel: make(chan *envelope.Envelope),
 	}
 }
 
-func (t *TransportSynchronous) Publish(message *envelope.Envelope, dispatchOptions *DispatchOptions) error {
+func (t *TransportSynchronous) Publish(message *envelope.Envelope) error {
 	// log.Printf("[%s] Publish message: %s", TransportName, message.template)
 	t.localMessageChannel <- message
 	return nil
