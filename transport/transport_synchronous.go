@@ -3,7 +3,6 @@ package transport
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/mmalessa/mmessenger/envelope"
 )
@@ -32,7 +31,7 @@ func (t *TransportSynchronous) Subscribe(
 	messageChannel chan (*envelope.Envelope),
 	errorChannel chan (error),
 ) {
-	log.Printf("[%s] Subscribing started", TransportName)
+	log.Printf("[%s] Start", TransportName)
 out:
 	for {
 		select {
@@ -42,9 +41,7 @@ out:
 			messageChannel <- envelope
 		case <-t.ctx.Done():
 			break out
-		default:
-			time.Sleep(100 * time.Millisecond)
 		}
 	}
-	log.Printf("[%s] Subscribing complete", TransportName)
+	log.Printf("[%s] Completed", TransportName)
 }

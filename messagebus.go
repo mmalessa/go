@@ -23,7 +23,7 @@ func NewMessageBus(
 		ctx: ctx,
 	}
 	b.setOptArgs(optArgs)
-	// b.setDefaultArgs()
+	b.setDefaultArgs()
 	return b
 }
 
@@ -39,15 +39,15 @@ func (b *MessageBus) setOptArgs(optArgs []interface{}) error {
 	return nil
 }
 
-// func (b *MessageBus) setDefaultArgs() error {
-// 	if b.transport == nil {
-// 		b.transport = transport.NewSynchronous(b.ctx)
-// 	}
-// 	// TODO
-// 	return nil
-// }
+func (b *MessageBus) setDefaultArgs() error {
+	// TODO
+	// if b.transport == nil {
+	// 	b.transport = transport.NewSynchronous(b.ctx)
+	// }
+	return nil
+}
 
-func (b *MessageBus) Start() error {
+func (b *MessageBus) Start() {
 	log.Println("[messagebus] Start")
 	go func() {
 		messageChannel := make(chan *envelope.Envelope)
@@ -64,14 +64,11 @@ func (b *MessageBus) Start() error {
 				b.handleError(err)
 			case <-b.ctx.Done():
 				break out
-			default:
-				time.Sleep(100 * time.Millisecond)
 			}
 		}
-		log.Println("[messagebus] Complete")
+		log.Println("[messagebus] Completed")
 	}()
 	time.Sleep(100 * time.Millisecond)
-	return nil
 }
 
 // TODO
@@ -81,13 +78,12 @@ func (b *MessageBus) handleError(err error) {
 
 // TODO
 func (b *MessageBus) handleMessage(envelope *envelope.Envelope) {
-	// log.Printf("[BUS] Handle message: %s", envelope.stamps.template)
-	log.Printf("[BUS] Envelope: %#v", envelope)
+	log.Printf("[messagebud] Handle Message: %#v", envelope)
 }
 
 func (b *MessageBus) Dispatch(message interface{}, stamps ...func(*envelope.EnvelopeStamps)) error {
 	envelope := envelope.Wrap(message, stamps...)
-	fmt.Println(envelope)
-	log.Printf("[BUS] Dispatch message: %s", "TODO")
+	log.Printf("[messagebus] Dispatch message: %#v", envelope)
+	log.Printf("[messagebus] Dispatch to transport: %s", fmt.Sprintf("%T", b.transport))
 	return b.transport.Publish(envelope)
 }
