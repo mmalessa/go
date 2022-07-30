@@ -1,4 +1,4 @@
-package hermessenger
+package mmessenger
 
 type EnvelopeStamps struct {
 	template string

@@ -1,4 +1,4 @@
-APP_NAME = hermessenger
+APP_NAME = mmessenger
 APP_HOME = github.com/mmalessa/$(APP_NAME)
 
 BASE_GO_IMAGE = golang:1.17.6-alpine3.15

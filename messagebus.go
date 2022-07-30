@@ -1,4 +1,4 @@
-package hermessenger
+package mmessenger
 
 import (
 	"context"
@@ -7,24 +7,24 @@ import (
 	"time"
 )
 
-type Bus struct {
+type MessageBus struct {
 	ctx             context.Context
 	transport       Transport
 	envelopeFactory EnvelopeFactory
 }
 
-func NewBus(
+func NewMessageBus(
 	ctx context.Context,
 	optArgs ...interface{},
-) *Bus {
-	b := &Bus{
+) *MessageBus {
+	b := &MessageBus{
 		ctx: ctx,
 	}
 	b.setOptArgs(optArgs)
 	return b
 }
 
-func (b *Bus) setOptArgs(optArgs []interface{}) error {
+func (b *MessageBus) setOptArgs(optArgs []interface{}) error {
 	for _, arg := range optArgs {
 		switch argType := arg.(type) {
 		case Transport:
@@ -38,7 +38,7 @@ func (b *Bus) setOptArgs(optArgs []interface{}) error {
 	return nil
 }
 
-func (b *Bus) StartConsume() error {
+func (b *MessageBus) StartConsume() error {
 	log.Println("[BUS] Consuming started")
 	if b.transport == nil {
 		return fmt.Errorf("[BUS] Transport not specified")
@@ -68,7 +68,7 @@ func (b *Bus) StartConsume() error {
 	return nil
 }
 
-func (b *Bus) Dispatch(message interface{}, options ...func(*DispatchOptions)) error {
+func (b *MessageBus) Dispatch(message interface{}, options ...func(*DispatchOptions)) error {
 	dispatchOptions := getDefaultDispatchOptions()
 	for _, option := range options {
 		option(dispatchOptions)
@@ -83,7 +83,7 @@ func (b *Bus) Dispatch(message interface{}, options ...func(*DispatchOptions)) e
 	return nil
 }
 
-func (b *Bus) getEnvelopeFromMessage(message interface{}) (*Envelope, error) {
+func (b *MessageBus) getEnvelopeFromMessage(message interface{}) (*Envelope, error) {
 	if fmt.Sprintf("%T", message) == "*hermessenger.Envelope" {
 		return message.(*Envelope), nil
 	}
@@ -98,12 +98,12 @@ func (b *Bus) getEnvelopeFromMessage(message interface{}) (*Envelope, error) {
 }
 
 // TODO
-func (b *Bus) handleError(err error) {
+func (b *MessageBus) handleError(err error) {
 	log.Println("[BUS] Error from transport:", err)
 }
 
 // TODO
-func (b *Bus) handleMessage(envelope *Envelope) {
+func (b *MessageBus) handleMessage(envelope *Envelope) {
 	log.Printf("[BUS] Handle message: %s", envelope.stamps.template)
 	log.Printf("[BUS] Envelope: %#v", envelope)
 }

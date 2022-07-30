@@ -1,4 +1,4 @@
-package hermessenger
+package mmessenger
 
 type Envelope struct {
 	message interface{}

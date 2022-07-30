@@ -1,4 +1,4 @@
-package hermessenger
+package mmessenger
 
 type Transport interface {
 	Publish(message *Envelope, dispatchOptions *DispatchOptions) error

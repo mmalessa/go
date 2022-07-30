@@ -1,12 +1,12 @@
-package hermessenger
+package mmessenger
 
 import "testing"
 
 func TestNewMessage(t *testing.T) {
-	body := "My Content"
-	msg := NewEnvelope(body)
+	message := "My Content"
+	msg := NewEnvelope(message)
 
-	if msg.body != body {
-		t.Fatalf("got %s, wanted %s", msg.body, body)
+	if msg.message != message {
+		t.Fatalf("got %s, wanted %s", msg.message, message)
 	}
 }

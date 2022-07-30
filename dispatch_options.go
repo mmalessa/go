@@ -1,4 +1,4 @@
-package hermessenger
+package mmessenger
 
 type DispatchOptions struct {
 	delay int
