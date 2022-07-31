@@ -39,10 +39,10 @@ func (b *MessageBus) setOptArgs(optArgs []interface{}) error {
 }
 
 func (b *MessageBus) Dispatch(message interface{}, stamps ...func(*envelope.EnvelopeStamps)) error {
-	envelope := envelope.Wrap(message, stamps...)
-	log.Printf("[messagebus] Dispatch message: %#v", envelope)
+	envel := envelope.Wrap(message, stamps...)
+	log.Printf("[messagebus] Dispatch message: %#v", envel)
 	log.Printf("[messagebus] Dispatch to transport: %s", fmt.Sprintf("%T", b.transport))
-	return b.transport.Publish(envelope)
+	return b.transport.Publish(envel)
 }
 
 func (b *MessageBus) Start() {
@@ -56,8 +56,10 @@ func (b *MessageBus) Start() {
 	out:
 		for {
 			select {
-			case msg := <-busMessageChannel:
-				busErrorChannel <- b.handleMessage(msg)
+			case envel := <-busMessageChannel:
+				log.Printf("[messagebus] Process the message: %#v", envel)
+				busErrorChannel <- b.processTheMessage(envel)
+				log.Printf("[messagebus] Message has been processed: %#v", envel)
 			case <-b.ctx.Done():
 				break out
 			}
@@ -68,10 +70,7 @@ func (b *MessageBus) Start() {
 }
 
 // TODO
-func (b *MessageBus) handleMessage(envelope *envelope.Envelope) error {
-	log.Printf("[messagebus] Handle message: %#v", envelope)
-	// TODO
+func (b *MessageBus) processTheMessage(envel *envelope.Envelope) error {
 	time.Sleep(333 * time.Millisecond)
-	log.Printf("[messagebus] ACK message: %#v", envelope)
 	return nil
 }

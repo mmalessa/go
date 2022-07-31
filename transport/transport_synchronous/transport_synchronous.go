@@ -1,4 +1,4 @@
-package transport
+package transportsynchronous
 
 import (
 	"context"
@@ -6,8 +6,6 @@ import (
 
 	"github.com/mmalessa/mmessenger/envelope"
 )
-
-const TransportName = "TransportSynchronous"
 
 type TransportSynchronous struct {
 	ctx                 context.Context
@@ -23,9 +21,9 @@ func NewSynchronous(ctx context.Context) *TransportSynchronous {
 	}
 }
 
-func (t *TransportSynchronous) Publish(e *envelope.Envelope) error {
-	log.Printf("[%s] Publish message: %v", TransportName, e)
-	t.localMessageChannel <- e
+func (t *TransportSynchronous) Publish(envel *envelope.Envelope) error {
+	log.Printf("[transport synchronous] Publish message: %v", envel)
+	t.localMessageChannel <- envel
 	return <-t.localErrorChannel
 }
 
@@ -33,17 +31,17 @@ func (t *TransportSynchronous) Subscribe(
 	busMessageChannel chan (*envelope.Envelope),
 	busErrorChannel chan (error),
 ) {
-	log.Printf("[%s] Start", TransportName)
+	log.Print("[transport synchronous] Start")
 endfor:
 	for {
 		select {
-		case e := <-t.localMessageChannel:
-			log.Printf("[%s] Handle message: %v", TransportName, e)
-			busMessageChannel <- e
+		case envel := <-t.localMessageChannel:
+			log.Printf("[transport synchronous] Received message: %v", envel)
+			busMessageChannel <- envel
 			t.localErrorChannel <- <-busErrorChannel
 		case <-t.ctx.Done():
 			break endfor
 		}
 	}
-	log.Printf("[%s] Completed", TransportName)
+	log.Print("[transport synchronous] Completed")
 }
