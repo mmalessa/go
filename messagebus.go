@@ -23,7 +23,6 @@ func NewMessageBus(
 		ctx: ctx,
 	}
 	b.setOptArgs(optArgs)
-	b.setDefaultArgs()
 	return b
 }
 
@@ -39,29 +38,26 @@ func (b *MessageBus) setOptArgs(optArgs []interface{}) error {
 	return nil
 }
 
-func (b *MessageBus) setDefaultArgs() error {
-	// TODO
-	// if b.transport == nil {
-	// 	b.transport = transport.NewSynchronous(b.ctx)
-	// }
-	return nil
+func (b *MessageBus) Dispatch(message interface{}, stamps ...func(*envelope.EnvelopeStamps)) error {
+	envelope := envelope.Wrap(message, stamps...)
+	log.Printf("[messagebus] Dispatch message: %#v", envelope)
+	log.Printf("[messagebus] Dispatch to transport: %s", fmt.Sprintf("%T", b.transport))
+	return b.transport.Publish(envelope)
 }
 
 func (b *MessageBus) Start() {
 	log.Println("[messagebus] Start")
 	go func() {
-		messageChannel := make(chan *envelope.Envelope)
-		errorChannel := make(chan error)
-		defer close(messageChannel)
-		defer close(errorChannel)
-		go b.transport.Subscribe(messageChannel, errorChannel)
+		busMessageChannel := make(chan *envelope.Envelope)
+		busErrorChannel := make(chan error)
+		defer close(busMessageChannel)
+		defer close(busErrorChannel)
+		go b.transport.Subscribe(busMessageChannel, busErrorChannel)
 	out:
 		for {
 			select {
-			case msg := <-messageChannel:
-				b.handleMessage(msg)
-			case err := <-errorChannel:
-				b.handleError(err)
+			case msg := <-busMessageChannel:
+				busErrorChannel <- b.handleMessage(msg)
 			case <-b.ctx.Done():
 				break out
 			}
@@ -72,18 +68,10 @@ func (b *MessageBus) Start() {
 }
 
 // TODO
-func (b *MessageBus) handleError(err error) {
-	log.Println("[BUS] Error from transport:", err)
-}
-
-// TODO
-func (b *MessageBus) handleMessage(envelope *envelope.Envelope) {
-	log.Printf("[messagebud] Handle Message: %#v", envelope)
-}
-
-func (b *MessageBus) Dispatch(message interface{}, stamps ...func(*envelope.EnvelopeStamps)) error {
-	envelope := envelope.Wrap(message, stamps...)
-	log.Printf("[messagebus] Dispatch message: %#v", envelope)
-	log.Printf("[messagebus] Dispatch to transport: %s", fmt.Sprintf("%T", b.transport))
-	return b.transport.Publish(envelope)
+func (b *MessageBus) handleMessage(envelope *envelope.Envelope) error {
+	log.Printf("[messagebus] Handle message: %#v", envelope)
+	// TODO
+	time.Sleep(333 * time.Millisecond)
+	log.Printf("[messagebus] ACK message: %#v", envelope)
+	return nil
 }

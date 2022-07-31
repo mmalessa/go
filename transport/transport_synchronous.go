@@ -12,35 +12,37 @@ const TransportName = "TransportSynchronous"
 type TransportSynchronous struct {
 	ctx                 context.Context
 	localMessageChannel chan (*envelope.Envelope)
+	localErrorChannel   chan (error)
 }
 
 func NewSynchronous(ctx context.Context) *TransportSynchronous {
 	return &TransportSynchronous{
 		ctx:                 ctx,
 		localMessageChannel: make(chan *envelope.Envelope),
+		localErrorChannel:   make(chan error),
 	}
 }
 
-func (t *TransportSynchronous) Publish(message *envelope.Envelope) error {
-	// log.Printf("[%s] Publish message: %s", TransportName, message.template)
-	t.localMessageChannel <- message
-	return nil
+func (t *TransportSynchronous) Publish(e *envelope.Envelope) error {
+	log.Printf("[%s] Publish message: %v", TransportName, e)
+	t.localMessageChannel <- e
+	return <-t.localErrorChannel
 }
 
 func (t *TransportSynchronous) Subscribe(
-	messageChannel chan (*envelope.Envelope),
-	errorChannel chan (error),
+	busMessageChannel chan (*envelope.Envelope),
+	busErrorChannel chan (error),
 ) {
 	log.Printf("[%s] Start", TransportName)
-out:
+endfor:
 	for {
 		select {
-		case envelope := <-t.localMessageChannel:
-			// log.Printf("[%s] Handle message: %s", TransportName, envelope.stamps.template)
-			log.Printf("[%s] Handle message: %s", TransportName, "TODO")
-			messageChannel <- envelope
+		case e := <-t.localMessageChannel:
+			log.Printf("[%s] Handle message: %v", TransportName, e)
+			busMessageChannel <- e
+			t.localErrorChannel <- <-busErrorChannel
 		case <-t.ctx.Done():
-			break out
+			break endfor
 		}
 	}
 	log.Printf("[%s] Completed", TransportName)
