@@ -4,12 +4,12 @@ type EnvelopeStamps map[string]interface{}
 
 func StampWithDelay(delaySec int) func(*EnvelopeStamps) {
 	return func(stamps *EnvelopeStamps) {
-		(*stamps)["delaySec"] = delaySec
+		(*stamps)["delay"] = delaySec
 	}
 }
 
-func StampWithMessageTemplate(templateName string) func(*EnvelopeStamps) {
+func StampWithMessageType(templateName string) func(*EnvelopeStamps) {
 	return func(stamps *EnvelopeStamps) {
-		(*stamps)["messageTemplate"] = templateName
+		(*stamps)["messageType"] = templateName
 	}
 }
