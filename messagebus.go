@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/mmalessa/mmessenger/envelope"
+	handlerslocator "github.com/mmalessa/mmessenger/handlers_locator"
 	"github.com/mmalessa/mmessenger/transport"
 )
 
 type MessageBus struct {
-	ctx       context.Context
-	transport transport.Transport
+	ctx             context.Context
+	transport       transport.Transport
+	handlersLocator handlerslocator.HandlersLocator
 }
 
 func NewMessageBus(
@@ -31,6 +33,8 @@ func (b *MessageBus) setOptArgs(optArgs []interface{}) error {
 		switch argTyped := arg.(type) {
 		case transport.Transport:
 			b.transport = argTyped
+		case handlerslocator.HandlersLocator:
+			b.handlersLocator = argTyped
 		default:
 			log.Printf("[messagebus] Unknown argument type: %T", argTyped)
 		}
@@ -71,6 +75,17 @@ func (b *MessageBus) Start() {
 
 // TODO
 func (b *MessageBus) processTheMessage(envel *envelope.Envelope) error {
+	handler, err := b.handlersLocator.GetHandler(envel)
+	if err != nil {
+		// FIXME
+		return err
+	}
+	result := handler(envel)
+	log.Printf("[messagebus] handler result %#v", result)
+
+	// retry policy
+	// failed message processing
+
 	time.Sleep(333 * time.Millisecond)
 	return nil
 }
