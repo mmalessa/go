@@ -3,6 +3,7 @@ package transportsynchronous
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/mmalessa/mmessenger/envelope"
 )
@@ -22,6 +23,11 @@ func NewSynchronous(ctx context.Context) *TransportSynchronous {
 }
 
 func (t *TransportSynchronous) Publish(envel *envelope.Envelope) error {
+	if delaySec, err := envel.GetStamp("delay"); err == nil {
+		delaySec := delaySec.(int)
+		log.Printf("[transport synchronous] Delay %d sec", delaySec)
+		time.Sleep(time.Duration(delaySec) * time.Second)
+	}
 	log.Printf("[transport synchronous] Publish message: %v", envel)
 	t.localMessageChannel <- envel
 	return <-t.localErrorChannel
