@@ -1,6 +1,14 @@
-# Hermessenger
+# Mmessenger
 An attempt to create a messagebus (async, amqp ...and so on)
-Under construction
+Still under construction
+
+# Kick start
+```sh
+make up
+make console # OR In VSC -> `attach to running container`
+make go # == `go build` with some parameters
+./examples/dev/dev
+```
 
 --------  
 
