@@ -1,4 +1,4 @@
 /.vscode
 !/**/.gitkeep
 /bin/*
-go.mod
+go.sum
