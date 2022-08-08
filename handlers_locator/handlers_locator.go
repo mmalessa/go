@@ -19,7 +19,7 @@ func NewHandlersLocatorDefault() *HandlersLocatorDefault {
 
 func (hl *HandlersLocatorDefault) GetHandler(envel *envelope.Envelope) (func(envel *envelope.Envelope) error, error) {
 	return func(envel *envelope.Envelope) error {
-		fmt.Println("Hi, I'm default handler")
+		fmt.Println("Hi, I'm default and non working handler")
 		return nil
 	}, nil
 }
