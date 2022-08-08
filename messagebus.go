@@ -81,11 +81,14 @@ func (b *MessageBus) processTheMessage(envel *envelope.Envelope) error {
 		return err
 	}
 	result := handler(envel)
-	log.Printf("[messagebus] handler result %#v", result)
-
+	if result != nil {
+		log.Printf("[messagebus] handler ERROR: %#v", result)
+	} else {
+		log.Print("[messagebus] handler success")
+	}
 	// retry policy
 	// failed message processing
 
 	time.Sleep(333 * time.Millisecond)
-	return nil
+	return result
 }
